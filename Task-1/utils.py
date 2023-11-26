@@ -7,17 +7,22 @@ class OverlapException(Exception):
 
 
 def is_email_valid(email):
+    """Validate email address"""
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b'
     if(re.fullmatch(regex, email)):
         return True
     else:
         return False
     
-def is_phone_valid(s):
+def is_phone_valid(phone):
+    """validate phone number
+    Note: regex can be modified based on country code or any other condition
+    """
     Pattern = re.compile("(0|91)?[6-9][0-9]{9}")
-    return Pattern.match(s)
+    return Pattern.match(phone)
 
 def validate_payload(data):
+    """Validate request payload"""
     if not data.get('email') or not data.get("phoneNumber"):
         return False
     if not is_email_valid(data.get('email')):
@@ -29,6 +34,7 @@ def validate_payload(data):
 
 
 def get_id(data):
+    """Filter all the primary id from data"""
     temp=set()
     for s, p in data:
         temp.add(p or s)
@@ -43,10 +49,10 @@ def get_contacts(phone, email):
 
     if res:
         id = get_id(res)
+        # if multiple primary id found then mark the requested payload as overlap data
         if len(id)>1:
             raise OverlapException("Contact Overlap!")
         query=f"SELECT id, linkedId, phoneNumber, email, linkedPrecedence from Contact WHERE linkedId = '{id[0]}' or id = '{id[0]}'"
-        print(query, res)
         cur.execute(query)
         res = cur.fetchall()
 
@@ -69,6 +75,7 @@ def create_new_contact(phone, email, linkedPrecedence='primary'):
 
 
 def filter_contacts(data):
+    """Process json response with all linked data"""
     temp=set()
     primary_contact=None
     payload={
@@ -98,6 +105,7 @@ def filter_contacts(data):
 def identify_data(email, phone):
 
     existing_contact = get_contacts(phone, email)
+    # if no contact found on cuurent data then make a primary contact entry
     if not existing_contact:
         inserted_id = create_new_contact(phone, email)
         return True, {
@@ -110,14 +118,16 @@ def identify_data(email, phone):
     else:
         primary_contact, payload = filter_contacts(existing_contact)
 
+        # check similarity on previous and current data
         if phone==primary_contact[2] and email==primary_contact[3]:
             payload['emails']=list(payload['emails'])
             payload['phoneNumbers']=list(payload['phoneNumbers'])
             payload['secondaryContactIds']=list(payload['secondaryContactIds'])
         
             return False, payload
+        
         else:
-            
+            # make secondary contact entry and update the primary contact
             cur=conn.cursor()
             query=f"INSERT INTO Contact (phoneNumber, email, linkedId, linkedPrecedence) VALUES ('{primary_contact[2]}' , '{primary_contact[3]}', '{primary_contact[0]}', 'secondary')"
             cur.execute(query)

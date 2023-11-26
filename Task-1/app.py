@@ -4,7 +4,6 @@ from utils import identify_data, validate_payload, OverlapException
 app = Flask(__name__)
  
 @app.route('/identify', methods=['POST'])
-
 def identify():
     json_data= request.get_json()
     res = validate_payload(json_data)
