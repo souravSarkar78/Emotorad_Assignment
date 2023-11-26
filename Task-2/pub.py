@@ -1,23 +1,12 @@
-# import paho.mqtt.client as mqtt #import the client1
-# broker_address="127.0.0.1" 
-# #broker_address="iot.eclipse.org" #use external broker
-# client = mqtt.Client("P1") #create new instance
-# client.connect(broker_address) #connect to broker
-# client.publish("house/main-light","OFF")#publish
 
-
-#simulator device 1 for mqtt message publishing
 import paho.mqtt.client as paho
 import time
 import random
-#hostname
 import json
+
+
 broker="localhost"
-#port
 port=1883
-# def on_publish(client,userdata,result):
-#     client.publish("/data",json.dumps(message))
-#     pass
 
 client= paho.Client("admin")
 client.connect(broker,port)
