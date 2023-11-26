@@ -14,4 +14,4 @@ Run "pytest" command from Task-1 directory
 3. Run "sub.py", "pub.py" and "app.py" respectively with python command "python [module name]"
 
 To test API:
-Run "pytest" command from Task-1 directory
+Run "pytest" command from Task-2 directory
